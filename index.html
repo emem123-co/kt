@@ -67,6 +67,29 @@ td.g{padding-top:8px;font-weight:600;color:var(--soft)}
 .refresh{display:inline-flex;align-items:center;gap:6px}
 .refresh svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .refresh:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+button.refresh{border:0;font-family:inherit;cursor:pointer}
+.sheet{position:fixed;inset:0;z-index:10;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4)}
+.sheet[hidden]{display:none}
+.sheet-card{width:100%;max-width:640px;max-height:88%;display:flex;flex-direction:column;background:var(--bg);
+  border-radius:18px 18px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet-head{padding:16px 16px 4px}
+.sheet-head h2{margin:0}
+.sheet-head p{margin:2px 0 0;font-size:.85rem;color:var(--soft)}
+.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 12px}
+.step-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0;border-bottom:1px solid var(--empty)}
+.step-row span{font-size:.95rem}
+.stepper{display:flex;align-items:center;gap:6px;flex:none}
+.stepper button{width:40px;height:40px;border-radius:50%;border:0;background:var(--empty);color:var(--ink);
+  font:600 1.35rem/1 inherit;font-family:inherit;cursor:pointer}
+.stepper button:disabled{opacity:.35;cursor:default}
+.stepper button:focus-visible,.sheet-foot button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.stepper output{min-width:26px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;color:var(--soft)}
+.step-row.has output{color:var(--leaf)}
+.sheet-foot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--empty)}
+.sheet-foot button{flex:1;padding:12px;border-radius:999px;border:0;font-family:inherit;font-weight:600;font-size:1rem;cursor:pointer}
+.sheet-foot .go{background:var(--leaf);color:var(--panel)}
+.sheet-foot .go:disabled{opacity:.4;cursor:default}
+.sheet-foot .ghost{background:transparent;color:var(--leaf);box-shadow:inset 0 0 0 2px var(--leaf)}
 .note{font-size:.85rem;color:var(--soft);margin-top:24px}
 </style>
 </head>
@@ -136,7 +159,8 @@ if(!/\d{4}-\d{2}-\d{2}/.test(text)){ // no real data yet: show sample data
 // line format: 2026-10-01 12:51 AM, meditate
 const counts={}, todayLog=[], unknown={};
 text.split(/\r?\n/).forEach(line=>{
-  const m=line.trim().match(/^(\d{4}-\d{2}-\d{2})\s*([^,]*),\s*(.+)$/);
+  // line format: timestamp, item, id, location. id and location are optional and ignored here.
+  const m=line.trim().match(/^(\d{4}-\d{2}-\d{2})\s*([^,]*),\s*([^,]+?)\s*(?:,.*)?$/);
   if(!m) return;
   const [,d,time,rawItem]=m; const item=rawItem.trim().toLowerCase();
   const hit=ALL.find(([,,re])=>re.test(item));
@@ -147,11 +171,19 @@ text.split(/\r?\n/).forEach(line=>{
 const c=(d,k)=>(counts[d]&&counts[d][k])||0;
 const scoreOf=(list,d)=>list.reduce((s,[k,g])=>s+Math.min(c(d,k),g),0)/list.reduce((s,[,g])=>s+g,0);
 
-// tapping log runs the logger shortcut, which reopens this report when it finishes.
-// match this to the logger shortcut's exact name.
+// tapping log opens the stepper sheet. ok sends one line per serving to the logger shortcut,
+// which writes them to health-log.txt and reopens this report. match the logger's exact name.
 const LOGGER_NAME="daily goal logger";
+const MAX_SERVINGS=10;
+// these are the exact words written to the log, same as the lists in the logger shortcut
+const LOG_GROUPS=[
+  ["consumables",["beans","whole grains","probiotic","other fruit","greens","other veg","cruciferous",
+    "berries","flax or chia","nuts & seeds","50g fiber","60oz fluids","omega-3 2g"]],
+  ["practices",["10k steps","1h outside","meditate","cardio","cold 4m","heat 1h","sprints"]]
+];
+const LOG_ITEMS=LOG_GROUPS.flatMap(([,items])=>items);
 const made=today.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
-let h=`<div class="top"><div><h1>kt’s goal report</h1><p class="sub">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}${demo?" (sample data until you log something)":""}</p></div><a class="refresh" href="shortcuts://run-shortcut?name=${encodeURIComponent(LOGGER_NAME)}" aria-label="log something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</a></div>`;
+let h=`<div class="top"><div><h1>kt’s goal report</h1><p class="sub">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}${demo?" (sample data until you log something)":""}</p></div><button type="button" class="refresh" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
 h+=`<div class="scores"><div><b>${Math.round(scoreOf(CONSUMABLES,T)*100)}%</b><span>consumables today</span></div><div><b class="p">${Math.round(scoreOf(PRACTICES,T)*100)}%</b><span>practices today</span></div></div>`;
 
 const met=[...CONSUMABLES,...PRACTICES].filter(([k,g])=>c(T,k)>=g).length;
@@ -212,7 +244,41 @@ const unk=Object.keys(unknown);
 if(unk.length) h+=`<div class="warn">these log entries didn't match a goal, so they aren't counted: ${unk.map(u=>esc(u)+" ("+unknown[u]+")").join(", ")}. add a word from them to the matching goal at the top of the template.</div>`;
 
 h+=`<p class="note">a dot with a + is a bonus serving past the goal. each filled elephant at the top is a finished goal.</p>`;
+// stepper sheet
+let li=0;
+h+=`<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-card">
+<div class="sheet-head"><h2 id="sheet-title">log servings</h2><p>tap + once per serving, up to ${MAX_SERVINGS} each.</p></div><div class="sheet-body">`+
+LOG_GROUPS.map(([g,items])=>`<h3>${g}</h3>`+items.map(item=>{const i=li++;
+  return `<div class="step-row" data-row="${i}"><span>${esc(item)}</span><div class="stepper"><button type="button" data-i="${i}" data-d="-1" aria-label="one less ${esc(item)}" disabled>−</button><output aria-live="polite">0</output><button type="button" data-i="${i}" data-d="1" aria-label="one more ${esc(item)}">+</button></div></div>`;}).join("")).join("")+
+`</div><div class="sheet-foot"><button type="button" class="ghost" data-act="cancel">cancel</button><button type="button" class="go" data-act="ok" disabled>ok</button></div></div></div>`;
+
 document.getElementById("app").innerHTML=h;
+
+const sheet=document.getElementById("sheet");
+const picks=LOG_ITEMS.map(()=>0);
+const paint=()=>{
+  picks.forEach((n,i)=>{const row=sheet.querySelector(`[data-row="${i}"]`);
+    row.querySelector("output").textContent=n; row.classList.toggle("has",n>0);
+    row.querySelector('[data-d="-1"]').disabled=n<=0; row.querySelector('[data-d="1"]').disabled=n>=MAX_SERVINGS;});
+  const total=picks.reduce((a,b)=>a+b,0), ok=sheet.querySelector('[data-act="ok"]');
+  ok.disabled=total===0; ok.textContent=total?`ok (${total})`:"ok";
+};
+const openSheet=()=>{sheet.hidden=false;document.body.style.overflow="hidden";sheet.querySelector('[data-d="1"]').focus();};
+const closeSheet=()=>{picks.fill(0);paint();sheet.hidden=true;document.body.style.overflow="";};
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.i!==undefined){const i=+b.dataset.i;picks[i]=Math.max(0,Math.min(MAX_SERVINGS,picks[i]+ +b.dataset.d));paint();return;}
+  if(b.dataset.act==="open") openSheet();
+  if(b.dataset.act==="cancel") closeSheet();
+  if(b.dataset.act==="ok"){
+    const lines=[]; picks.forEach((n,i)=>{for(let j=0;j<n;j++) lines.push(LOG_ITEMS[i]);});
+    if(!lines.length) return;
+    const url=`shortcuts://run-shortcut?name=${encodeURIComponent(LOGGER_NAME)}&input=text&text=${encodeURIComponent(lines.join("\n"))}`;
+    closeSheet(); location.href=url;
+  }
+});
+sheet.addEventListener("click",e=>{if(e.target===sheet) closeSheet();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden) closeSheet();});
 </script>
 </body>
 </html>
