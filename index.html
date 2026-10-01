@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kt’s goal report</title>
+<style>
+:root{
+  --bg:#EEF2E6; --panel:#F8FAF3; --ink:#1F2A22; --soft:#5E6B60;
+  --leaf:#2F6B3F; --beet:#9B2F4F; --turmeric:#D9A21B; --empty:#D6DDCB; --sky:#2F6A8F;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#161C17; --panel:#1F2720; --ink:#E8EDE3; --soft:#9AA79B;
+    --leaf:#6FBF7F; --beet:#E07A98; --turmeric:#E8BC4D; --empty:#2E3830; --sky:#7DB8DC;}
+}
+*{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Avenir Next","Avenir",-apple-system,system-ui,sans-serif;line-height:1.4}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:2.1rem;font-weight:700;margin:0;letter-spacing:-.02em}
+h2{font-size:1.25rem;font-weight:700;margin:34px 0 4px}
+h3{font-size:1rem;font-weight:600;margin:20px 0 6px;color:var(--soft)}
+.sub{color:var(--soft);margin:2px 0 0}
+.scores{display:flex;gap:28px;margin-top:16px}
+.scores div b{display:block;font-size:2.6rem;line-height:1;color:var(--leaf)}
+.scores div b.p{color:var(--sky)}
+.scores span{font-size:.85rem;color:var(--soft)}
+.row{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:10px;padding:6px 0;
+  border-bottom:1px solid var(--empty)}
+.row span{font-size:.92rem}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:20px;height:20px;border-radius:50%;background:var(--empty);display:grid;place-items:center}
+.dot.on{background:var(--leaf)}
+.dot.on.p{background:var(--sky)}
+.dot.extra{background:var(--leaf);box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--leaf);margin:0 2px}
+.dot.extra.p{background:var(--sky);box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--sky)}
+.dot.extra::after{content:"+";color:var(--panel);font-weight:700;font-size:15px;line-height:1}
+.herd{margin:16px 0 0}
+.herd .pen{display:flex;flex-wrap:wrap;gap:4px}
+.herd .e{width:30px;height:30px;display:grid;place-items:center;font-size:1.45rem;line-height:1}
+.herd .e svg{width:28px;height:24px}
+.herd .e svg *{fill:var(--empty);stroke:none}
+.herd .e svg .tail{fill:none;stroke:var(--empty);stroke-width:1.3;stroke-linecap:round}
+.herd span{display:block;font-size:.85rem;color:var(--soft);margin-top:4px}
+.bar{height:12px;background:var(--empty);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sky)}
+.bar.c i{background:var(--leaf)}
+.bar.low i{background:var(--beet)}
+.meta{font-size:.8rem;color:var(--soft)}
+.panel{background:var(--panel);border-radius:14px;padding:14px}
+svg{display:block;width:100%;height:auto}
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:3px;font-size:.75rem}
+td.c{width:18px;height:18px;border-radius:4px;background:var(--empty)}
+th{font-weight:500;color:var(--soft)}
+td.l{white-space:nowrap;padding-right:6px}
+td.g{padding-top:8px;font-weight:600;color:var(--soft)}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--empty);font-size:.92rem}
+.log time{color:var(--soft);min-width:72px}
+.warn{background:var(--panel);border-left:4px solid var(--beet);padding:10px 12px;border-radius:8px;font-size:.88rem;margin-top:24px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.refresh{flex:none;margin-top:6px;padding:9px 14px;border-radius:999px;background:var(--leaf);color:var(--panel);
+  font-weight:600;font-size:.9rem;text-decoration:none}
+.refresh{display:inline-flex;align-items:center;gap:6px}
+.refresh svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.refresh:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.note{font-size:.85rem;color:var(--soft);margin-top:24px}
+</style>
+</head>
+<body>
+<main id="app"><h1>kt’s goal report</h1><p class="sub">the page loaded, but scripts aren’t running in this viewer, so the charts can’t draw. open it with the daily goal report shortcut instead.</p></main>
+<script>
+window.onerror=function(msg,src,line){document.getElementById("app").innerHTML='<h1>kt’s goal report</h1><p class="sub">something in the report broke: '+msg+' (line '+line+')</p>';};
+</script>
+<script>
+// the report shortcut opens this page as .../#d=<health-log.txt, base64 then url encoded>.
+// everything after # stays on the phone and is never sent to the host.
+let RAW = "";
+try {
+  const enc = decodeURIComponent(location.hash.replace(/^#d=/, "")).replace(/\s/g, "");
+  if (enc) RAW = new TextDecoder().decode(Uint8Array.from(atob(enc), ch => ch.charCodeAt(0)));
+} catch (e) { RAW = ""; }
+
+// each goal: [name shown, goal count, words that count toward it]
+// matching is loose, so "cold 4m", "cold plunge" and "cold" all count as cold.
+// order matters: the first match wins.
+const CONSUMABLES = [
+  ["probiotic",3,/probiotic|yogurt|kefir|kraut|kimchi|miso|kvass|acv/],
+  ["cruciferous",2,/crucif|broccoli|cauli|brussels|kale|bok choy|arugula|cabbage|radish/],
+  ["beans",3,/bean|legume|hummus|tofu|tempeh|edamame|lentil/],
+  ["berries",1,/berr/],
+  ["other fruit",3,/fruit/],
+  ["fluids",1,/water|fluid|tea|\boz\b/],
+  ["greens",2,/green/],
+  ["other veg",2,/veg/],
+  ["flax or chia",1,/flax|chia/],
+  ["nuts and seeds",1,/nut|seed/],
+  ["whole grains",3,/grain|oat|bread/],
+  ["fiber 50g",1,/fiber|fibre/],
+  ["omega-3",1,/omega|fish oil/]
+];
+const PRACTICES = [
+  ["meditate",1,/medit|breath/],
+  ["outside 1 hr",1,/outside|outdoor|sunlight/],
+  ["10k steps",1,/step|10k/]
+];
+const WEEKLY = [
+  ["cardio",5,/cardio|zone|z2/],
+  ["cold 4m",3,/cold|plunge|ice/],
+  ["heat 1 hr",1,/heat|sauna|hot yoga/],
+  ["sprints",1,/sprint|sled|interval/]
+];
+const ALL=[...CONSUMABLES,...PRACTICES,...WEEKLY];
+
+const pad=n=>String(n).padStart(2,"0");
+const ds=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const today=new Date(); const T=ds(today);
+const esc=s=>s.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+let text=RAW, demo=false;
+if(!/\d{4}-\d{2}-\d{2}/.test(text)){ // no real data yet: show sample data
+  demo=true; const lines=[];
+  for(let i=0;i<45;i++){const d=ds(addDays(today,-i));
+    ALL.forEach(([k,g])=>{const wk=WEEKLY.some(w=>w[0]===k);
+      const n=Math.floor(Math.random()*(g+1.4));
+      for(let j=0;j<n;j++) if(!wk||Math.random()<.2){
+        const hr=7+Math.floor(Math.random()*14);
+        lines.push(`${d} ${hr%12||12}:${pad(Math.floor(Math.random()*60))} ${hr<12?"AM":"PM"}, ${k}`);}});}
+  text=lines.join("\n");
+}
+
+// line format: 2026-10-01 12:51 AM, meditate
+const counts={}, todayLog=[], unknown={};
+text.split(/\r?\n/).forEach(line=>{
+  const m=line.trim().match(/^(\d{4}-\d{2}-\d{2})\s*([^,]*),\s*(.+)$/);
+  if(!m) return;
+  const [,d,time,rawItem]=m; const item=rawItem.trim().toLowerCase();
+  const hit=ALL.find(([,,re])=>re.test(item));
+  if(!hit){unknown[item]=(unknown[item]||0)+1; return;}
+  (counts[d]??={}); counts[d][hit[0]]=(counts[d][hit[0]]||0)+1;
+  if(d===T) todayLog.push([time.trim(),rawItem.trim()]);
+});
+const c=(d,k)=>(counts[d]&&counts[d][k])||0;
+const scoreOf=(list,d)=>list.reduce((s,[k,g])=>s+Math.min(c(d,k),g),0)/list.reduce((s,[,g])=>s+g,0);
+
+// tapping log runs the logger shortcut, which reopens this report when it finishes.
+// match this to the logger shortcut's exact name.
+const LOGGER_NAME="daily goal logger";
+const made=today.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+let h=`<div class="top"><div><h1>kt’s goal report</h1><p class="sub">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}${demo?" (sample data until you log something)":""}</p></div><a class="refresh" href="shortcuts://run-shortcut?name=${encodeURIComponent(LOGGER_NAME)}" aria-label="log something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</a></div>`;
+h+=`<div class="scores"><div><b>${Math.round(scoreOf(CONSUMABLES,T)*100)}%</b><span>consumables today</span></div><div><b class="p">${Math.round(scoreOf(PRACTICES,T)*100)}%</b><span>practices today</span></div></div>`;
+
+const met=[...CONSUMABLES,...PRACTICES].filter(([k,g])=>c(T,k)>=g).length;
+const GOALS=CONSUMABLES.length+PRACTICES.length;
+const SHADOW=`<svg viewBox="0 0 32 27" aria-hidden="true"><path class="tail" d="M29 11 q3 2 2 6"/><rect x="12" y="15" width="3.6" height="10" rx="1.5"/><rect x="17.4" y="16" width="3.6" height="9" rx="1.5"/><rect x="22.6" y="16" width="3.6" height="9" rx="1.5"/><rect x="26.8" y="14" width="3.6" height="11" rx="1.5"/><ellipse cx="20" cy="12" rx="10" ry="7.5"/><circle cx="9" cy="10" r="6.5"/><path d="M3.4 12 q-2.8 6 0 11.8 q1.8 1 2.6 -0.6 q-1.4 -4.6 1.6 -9.2 z"/><ellipse cx="13" cy="10.5" rx="3.6" ry="5"/></svg>`;
+h+=`<div class="herd" role="img" aria-label="${met} of ${GOALS} goals met today"><div class="pen">${'<div class="e">🐘</div>'.repeat(met)}${`<div class="e">${SHADOW}</div>`.repeat(GOALS-met)}</div><span>${met} of ${GOALS} goals met today</span></div>`;
+
+const dotRows=(list,cls)=>list.map(([k,g])=>{const n=c(T,k);let dots="";
+  for(let i=0;i<Math.max(g,n);i++) dots+=`<div class="dot ${i<Math.min(n,g)?"on "+cls:i>=g?"extra "+cls:""}"></div>`;
+  return `<div class="row"><span>${k}</span><div class="dots">${dots}</div></div>`;}).join("");
+
+// consumables
+h+=`<h2>consumables</h2>`+dotRows(CONSUMABLES,"");
+
+// practices
+h+=`<h2>practices</h2><h3>today</h3>`+dotRows(PRACTICES,"p");
+const mon=addDays(today,-((today.getDay()+6)%7));
+h+=`<h3>this week, since monday</h3>`;
+WEEKLY.forEach(([k,g])=>{let n=0;for(let i=0;i<7;i++)n+=c(ds(addDays(mon,i)),k);
+  const pct=Math.min(n/g,1)*100;
+  h+=`<div class="row"><span>${k}</span><div><div class="bar ${pct<50?"low":""}"><i style="width:${pct}%"></i></div><div class="meta">${n} of ${g}</div></div></div>`;});
+
+// today's log with times
+if(todayLog.length){
+  h+=`<h2>logged today</h2><ul class="log">`+todayLog.reverse().map(([t,i])=>`<li><time>${esc(t)}</time><span>${esc(i)}</span></li>`).join("")+`</ul>`;
+}
+
+// 30 day trend, both groups
+const days=[...Array(30)].map((_,i)=>ds(addDays(today,i-29)));
+const cv=days.map(d=>scoreOf(CONSUMABLES,d)), pv=days.map(d=>scoreOf(PRACTICES,d));
+const W=300,H=120,bw=W/30;
+const avg7=v=>v.map((_,i)=>{const s=v.slice(Math.max(0,i-6),i+1);return s.reduce((a,b)=>a+b,0)/s.length});
+let svg=`<svg viewBox="0 0 ${W} ${H+16}" role="img" aria-label="consumables daily score, last 30 days">`;
+[0.5,1].forEach(y=>svg+=`<line x1="0" x2="${W}" y1="${H-y*H}" y2="${H-y*H}" stroke="var(--empty)"/>`);
+cv.forEach((v,i)=>svg+=`<rect x="${i*bw+1}" y="${H-v*H}" width="${bw-2}" height="${v*H}" rx="2" fill="var(--leaf)" opacity=".5"/>`);
+svg+=`<polyline fill="none" stroke="var(--leaf)" stroke-width="2.5" points="${avg7(cv).map((v,i)=>`${i*bw+bw/2},${H-v*H}`).join(" ")}"/>`;
+svg+=`<polyline fill="none" stroke="var(--sky)" stroke-width="2.5" stroke-dasharray="5 3" points="${avg7(pv).map((v,i)=>`${i*bw+bw/2},${H-v*H}`).join(" ")}"/>`;
+svg+=`<text x="0" y="${H+13}" font-size="9" fill="var(--soft)">${days[0].slice(5)}</text><text x="${W}" y="${H+13}" font-size="9" fill="var(--soft)" text-anchor="end">today</text></svg>`;
+h+=`<h2>last 30 days</h2><div class="panel">${svg}<div class="meta">bars: consumables each day. solid line: consumables 7 day average. dashed line: practices 7 day average.</div></div>`;
+
+// heatmap, last 14 days, grouped
+const d14=days.slice(-14);
+const hmRows=(list,color)=>list.map(([k,g])=>`<tr><td class="l">${k}</td>`+d14.map(d=>{const f=Math.min(c(d,k)/g,1);
+  return `<td class="c" style="${f?`background:var(${color});opacity:${.25+f*.75}`:""}"></td>`}).join("")+"</tr>").join("");
+let tb=`<table><tr><th></th>${d14.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr>`;
+tb+=`<tr><td class="l g" colspan="15">consumables</td></tr>`+hmRows(CONSUMABLES,"--leaf");
+tb+=`<tr><td class="l g" colspan="15">practices</td></tr>`+hmRows(PRACTICES,"--sky")+`</table>`;
+h+=`<h2>last 14 days by item</h2><div class="panel scroll">${tb}</div>`;
+
+// hit rate, lowest first
+const rate=list=>list.map(([k,g])=>[k,days.reduce((s,d)=>s+Math.min(c(d,k)/g,1),0)/30]).sort((a,b)=>a[1]-b[1]);
+const rateRows=(list,cls)=>rate(list).map(([k,v])=>{const p=Math.round(v*100);
+  return `<div class="row"><span>${k}</span><div><div class="bar ${cls} ${p<50?"low":""}"><i style="width:${p}%"></i></div><div class="meta">${p}%</div></div></div>`;}).join("");
+h+=`<h2>30 day hit rate, lowest first</h2><h3>consumables</h3>${rateRows(CONSUMABLES,"c")}<h3>practices</h3>${rateRows(PRACTICES,"")}`;
+
+// anything in the log that didn't match a goal
+const unk=Object.keys(unknown);
+if(unk.length) h+=`<div class="warn">these log entries didn't match a goal, so they aren't counted: ${unk.map(u=>esc(u)+" ("+unknown[u]+")").join(", ")}. add a word from them to the matching goal at the top of the template.</div>`;
+
+h+=`<p class="note">a dot with a + is a bonus serving past the goal. each filled elephant at the top is a finished goal.</p>`;
+document.getElementById("app").innerHTML=h;
+</script>
+</body>
+</html>
