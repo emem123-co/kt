@@ -1,0 +1,132 @@
+/* =========================================================================
+   report.css
+   the report itself, top to bottom, in the order it appears on screen.
+   ========================================================================= */
+
+/* ---------- header: title, date and log button ---------- */
+.report-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+
+.log-button{
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+  padding:9px 14px;
+  border:0;
+  border-radius:999px;
+  background:var(--leaf);
+  color:var(--panel);
+  font-family:inherit;
+  font-weight:600;
+  font-size:.9rem;
+  text-decoration:none;
+  cursor:pointer;
+}
+.log-button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.log-button-icon{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- offline banner (shows only without a connection) ---------- */
+.offline-banner{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:var(--panel);
+  border-radius:14px;
+  padding:14px 16px;
+  margin-top:16px;
+}
+.offline-banner[hidden]{display:none}
+.offline-banner-image{width:84px;height:auto;flex:none}
+.offline-banner-title{display:block;font-size:1.05rem;text-wrap:balance}
+.offline-banner-message{display:block;color:var(--soft);font-size:.9rem;margin-top:2px;text-wrap:balance}
+
+/* ---------- empty states: no data, missing file ---------- */
+.empty-state{
+  background:var(--panel);
+  border-radius:14px;
+  padding:32px 18px;
+  margin-top:16px;
+  text-align:center;
+}
+.empty-state-image{display:block;width:180px;max-width:60%;height:auto;margin:0 auto 14px}
+.empty-state-title{display:block;font-size:1.15rem;text-wrap:balance}
+.empty-state-message{display:block;color:var(--soft);margin-top:4px}
+
+/* ---------- today's scores ---------- */
+.scores{display:flex;gap:28px;margin-top:16px}
+.score-value{display:block;font-size:2.6rem;line-height:1;color:var(--leaf)}
+.score-value--practice{color:var(--sky)}
+.score-label{font-size:.85rem;color:var(--soft)}
+
+/* ---------- herd: one elephant per daily goal met ---------- */
+.herd{margin:16px 0 0}
+.herd-pen{display:flex;flex-wrap:wrap;gap:4px}
+.herd-elephant{width:30px;height:30px;display:grid;place-items:center;font-size:1.45rem;line-height:1}
+.herd-shadow{width:28px;height:24px}
+.herd-shadow *{fill:var(--empty);stroke:none}
+.herd-shadow-tail{fill:none;stroke:var(--empty);stroke-width:1.3;stroke-linecap:round}
+.herd-caption{display:block;font-size:.85rem;color:var(--soft);margin-top:4px}
+
+/* ---------- goal circles ---------- */
+/* each row fits up to 9 circles on one line, shrinking a little on narrow phones */
+.dots{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;min-width:0}
+.dot{
+  flex:none;
+  width:clamp(12px,calc((100% - 58px) / 9),20px);
+  aspect-ratio:1;
+  border-radius:50%;
+  background:var(--empty);
+  display:grid;
+  place-items:center;
+}
+/* filled: counts toward the goal */
+.dot--met{background:var(--leaf)}
+.dot--met.dot--practice{background:var(--sky)}
+/* ringed with a +: a bonus serving past the goal */
+.dot--bonus{background:var(--leaf);box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--leaf);margin:0 1px}
+.dot--bonus.dot--practice{background:var(--sky);box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--sky)}
+.dot--bonus::after{content:"+";color:var(--panel);font-weight:700;font-size:13px;line-height:1}
+/* "++" pill in the 9th space: more were logged than the row can show */
+.dot--overflow{
+  width:auto;
+  aspect-ratio:auto;
+  height:clamp(12px,calc((100% - 58px) / 9),20px);
+  padding:0 4px;
+  border-radius:10px;
+  background:var(--leaf);
+  margin:0 1px;
+}
+.dot--overflow.dot--practice{background:var(--sky)}
+.dot--overflow::after{content:"++";color:var(--panel);font-weight:700;font-size:12px;line-height:1;letter-spacing:-1px}
+
+/* ---------- logged today ---------- */
+.today-log{list-style:none;margin:0;padding:0}
+.today-log-item{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--empty);font-size:.92rem}
+.today-log-time{color:var(--soft);min-width:96px;font-variant-numeric:tabular-nums}
+
+/* ---------- last 30 days chart ---------- */
+.trend-grid{stroke:var(--empty)}
+.trend-bar{fill:var(--leaf);opacity:.5}
+.trend-line{fill:none;stroke-width:2.5}
+.trend-line--consumable{stroke:var(--leaf)}
+.trend-line--practice{stroke:var(--sky);stroke-dasharray:5 3}
+.trend-axis-label{font-size:9px;fill:var(--soft)}
+
+/* ---------- last 14 days heatmap ---------- */
+/* each cell's color strength comes from the data, so it's set on the cell itself */
+.heatmap-table{border-collapse:separate;border-spacing:3px;font-size:.75rem}
+.heatmap-day{font-weight:500;color:var(--soft)}
+.heatmap-label{white-space:nowrap;padding-right:6px}
+.heatmap-group{padding-top:8px;font-weight:600;color:var(--soft)}
+.heatmap-cell{width:18px;height:18px;border-radius:4px;background:var(--empty)}
+
+/* ---------- unrecognized entries warning ---------- */
+.warning{
+  background:var(--panel);
+  border-left:4px solid var(--beet);
+  padding:10px 12px;
+  border-radius:8px;
+  font-size:.88rem;
+  margin-top:24px;
+}

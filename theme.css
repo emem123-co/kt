@@ -1,0 +1,78 @@
+/* =========================================================================
+   theme.css
+   colors, fonts and the shared building blocks every part of the page uses.
+   change a color here and it changes everywhere, in light and dark mode.
+   ========================================================================= */
+
+/* ---------- 1. color tokens ---------- */
+:root{
+  --bg:#EEF2E6;        /* page background */
+  --panel:#F8FAF3;     /* cards and panels */
+  --ink:#1F2A22;       /* main text */
+  --soft:#5E6B60;      /* secondary text */
+  --leaf:#2F6B3F;      /* consumables, buttons */
+  --beet:#9B2F4F;      /* warnings, low progress */
+  --turmeric:#D9A21B;  /* accent */
+  --empty:#D6DDCB;     /* empty circles, dividers */
+  --sky:#2F6A8F;       /* practices, focus rings */
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#161C17; --panel:#1F2720; --ink:#E8EDE3; --soft:#9AA79B;
+    --leaf:#6FBF7F; --beet:#E07A98; --turmeric:#E8BC4D; --empty:#2E3830; --sky:#7DB8DC;
+  }
+}
+
+/* ---------- 2. base ---------- */
+*{box-sizing:inherit}
+
+/* every piece of displayed text is lowercase, including dates, am/pm and logged item names */
+body{
+  text-transform:lowercase;
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Avenir Next","Avenir",-apple-system,system-ui,sans-serif;
+  line-height:1.4;
+}
+
+/* the page column */
+.page{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+
+/* svg drawings fill their container unless a class says otherwise */
+svg{display:block;width:100%;height:auto}
+
+/* ---------- 3. text styles ---------- */
+.page-title{font-size:2.1rem;font-weight:700;margin:0;letter-spacing:-.02em}
+.page-subtitle{color:var(--soft);margin:2px 0 0}
+.section-title{font-size:1.25rem;font-weight:700;margin:34px 0 4px}
+.subsection-title{font-size:1rem;font-weight:600;margin:20px 0 6px;color:var(--soft)}
+.caption{font-size:.8rem;color:var(--soft)}
+.footnote{font-size:.85rem;color:var(--soft);margin-top:24px}
+
+/* ---------- 4. shared pieces ---------- */
+/* rounded card behind charts and tables */
+.card{background:var(--panel);border-radius:14px;padding:14px}
+
+/* lets wide content scroll sideways inside its card */
+.scroll-x{overflow-x:auto}
+
+/* one row of a goal list: label on the left, progress on the right */
+.goal-row{
+  display:grid;
+  grid-template-columns:clamp(88px,30%,120px) minmax(0,1fr);
+  align-items:center;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px solid var(--empty);
+}
+.goal-label{font-size:.92rem}
+
+/* progress bar (weekly practices, hit rates) */
+.bar{height:12px;background:var(--empty);border-radius:6px;overflow:hidden}
+.bar-fill{display:block;height:100%;background:var(--sky)}
+.bar--consumable .bar-fill{background:var(--leaf)}
+.bar--low .bar-fill{background:var(--beet)}
