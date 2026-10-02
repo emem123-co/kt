@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>kt’s health logger</title>
+<title>kt’s goal report</title>
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="report.css">
 <link rel="stylesheet" href="sheet.css">
 </head>
 <body>
-<main id="app" class="page"><h1 class="page-title">kt’s health logger</h1><p class="page-subtitle">the page loaded, but scripts aren’t running in this viewer, so the charts can’t draw. open it with the kt health logger shortcut instead.</p></main>
+<main id="app" class="page"><h1 class="page-title">kt’s goal report</h1><p class="page-subtitle">the page loaded, but scripts aren’t running in this viewer, so the charts can’t draw. open it with the kt health logger shortcut instead.</p></main>
 <script>
-window.onerror=function(msg,src,line){document.getElementById("app").innerHTML='<h1 class="page-title">kt’s health logger</h1><p class="page-subtitle">something in the report broke: '+msg+' (line '+line+')</p>';};
+window.onerror=function(msg,src,line){document.getElementById("app").innerHTML='<h1 class="page-title">kt’s goal report</h1><p class="page-subtitle">something in the report broke: '+msg+' (line '+line+')</p>';};
 </script>
 <script>
 // the report shortcut opens this page as .../#d=<health-log.txt, base64 then url encoded>.
@@ -104,14 +104,22 @@ const LOG_GROUPS=[
   ["practices",["10k steps","1h outside","meditate","cardio","cold 4m","heat 1h","sprints"]]
 ];
 const LOG_ITEMS=LOG_GROUPS.flatMap(([,items])=>items);
+// the report lists goals in the same order as the log sheet above. the goal lists at the top of the
+// script stay in their own order, because that order decides which goal a logged word counts toward.
+const goalOf=item=>ALL.find(([,,re])=>re.test(item.toLowerCase()));
+const inLogOrder=list=>{const out=[];
+  LOG_ITEMS.forEach(item=>{const g=goalOf(item); if(g&&list.includes(g)&&!out.includes(g)) out.push(g);});
+  list.forEach(g=>{if(!out.includes(g)) out.push(g);});   // any goal not in the sheet goes last
+  return out;};
+const SHOW_CONSUMABLES=inLogOrder(CONSUMABLES), SHOW_PRACTICES=inLogOrder(PRACTICES), SHOW_WEEKLY=inLogOrder(WEEKLY);
 const made=today.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
-let h=`<div class="report-header"><div class="report-header-text"><h1 class="page-title">kt’s health logger</h1><p class="page-subtitle">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}</p></div><button type="button" class="log-button" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg class="log-button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
+let h=`<div class="report-header"><div class="report-header-text"><h1 class="page-title">kt’s goal report</h1><p class="page-subtitle">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}</p></div><button type="button" class="log-button" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg class="log-button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
 // offline notice: the page itself can load offline (saved copy, see sw.js); this tells her why it looks the same
-h+=`<div class="offline-banner" id="offline" role="status" hidden><img class="offline-banner-image" src="elephant.webp" alt="" width="84" height="98"><div class="offline-banner-text"><b class="offline-banner-title">oops. the herd lost its signal…</b><span class="offline-banner-message">you’re offline, but you can still log progress with + log.</span></div></div>`;
+h+=`<div class="offline-banner" id="offline" role="status" hidden><img class="offline-banner-image" src="elephant.webp" alt="" width="84" height="98"><div class="offline-banner-text"><b class="offline-banner-title">oops. the herd lost its signal…</b><span class="offline-banner-message">you’re offline, but your report is up to date and logging still works.</span></div></div>`;
 if(EMPTY){
   h+= NO_FILE
     ? `<div class="empty-state" role="status"><b class="empty-state-title">health-log.txt file does not exist</b><span class="empty-state-message">logging something will create it.</span></div>`
-    : `<div class="empty-state" role="status"><img class="empty-state-image" src="nodata-elephant.webp" alt="" width="180" height="210"><b class="empty-state-title">no data</b><span class="empty-state-message">tap + log to add your first entry.</span></div>`;
+    : `<div class="empty-state" role="status"><img class="empty-state-image" src="nodata-elephant.webp" alt="" width="180" height="210"><b class="empty-state-title">no data</b><span class="empty-state-message">tap log to add your first entry.</span></div>`;
 } else {
 h+=`<div class="scores"><div class="score"><b class="score-value">${Math.round(scoreOf(CONSUMABLES,T)*100)}%</b><span class="score-label">consumables today</span></div><div class="score"><b class="score-value score-value--practice">${Math.round(scoreOf(PRACTICES,T)*100)}%</b><span class="score-label">practices today</span></div></div>`;
 
@@ -128,13 +136,13 @@ const dotRows=(list,cls)=>list.map(([k,g])=>{const n=c(T,k), shown=Math.min(Math
   return `<div class="goal-row"><span class="goal-label">${k}</span><div class="dots">${dots}</div></div>`;}).join("");
 
 // consumables
-h+=`<h2 class="section-title">consumables</h2>`+dotRows(CONSUMABLES,"");
+h+=`<h2 class="section-title">consumables</h2>`+dotRows(SHOW_CONSUMABLES,"");
 
 // practices
-h+=`<h2 class="section-title">practices</h2><h3 class="subsection-title">today</h3>`+dotRows(PRACTICES,"dot--practice");
+h+=`<h2 class="section-title">practices</h2><h3 class="subsection-title">today</h3>`+dotRows(SHOW_PRACTICES,"dot--practice");
 const mon=addDays(today,-((today.getDay()+6)%7));
 h+=`<h3 class="subsection-title">this week, since monday</h3>`;
-WEEKLY.forEach(([k,g])=>{let n=0;for(let i=0;i<7;i++)n+=c(ds(addDays(mon,i)),k);
+SHOW_WEEKLY.forEach(([k,g])=>{let n=0;for(let i=0;i<7;i++)n+=c(ds(addDays(mon,i)),k);
   const pct=Math.min(n/g,1)*100;
   h+=`<div class="goal-row"><span class="goal-label">${k}</span><div class="goal-progress"><div class="bar ${pct<50?"bar--low":""}"><i class="bar-fill" style="width:${pct}%"></i></div><div class="caption">${n} of ${g}</div></div></div>`;});
 
@@ -161,15 +169,15 @@ const d14=days.slice(-14);
 const hmRows=(list,color)=>list.map(([k,g])=>`<tr><td class="heatmap-label">${k}</td>`+d14.map(d=>{const f=Math.min(c(d,k)/g,1);
   return `<td class="heatmap-cell" style="${f?`background:var(${color});opacity:${.25+f*.75}`:""}"></td>`}).join("")+"</tr>").join("");
 let tb=`<table class="heatmap-table"><tr><th class="heatmap-day"></th>${d14.map(d=>`<th class="heatmap-day">${+d.slice(8)}</th>`).join("")}</tr>`;
-tb+=`<tr><td class="heatmap-label heatmap-group" colspan="15">consumables</td></tr>`+hmRows(CONSUMABLES,"--leaf");
-tb+=`<tr><td class="heatmap-label heatmap-group" colspan="15">practices</td></tr>`+hmRows(PRACTICES,"--sky")+`</table>`;
+tb+=`<tr><td class="heatmap-label heatmap-group" colspan="15">consumables</td></tr>`+hmRows(SHOW_CONSUMABLES,"--leaf");
+tb+=`<tr><td class="heatmap-label heatmap-group" colspan="15">practices</td></tr>`+hmRows(SHOW_PRACTICES,"--sky")+`</table>`;
 h+=`<h2 class="section-title">last 14 days by item</h2><div class="card scroll-x heatmap-card">${tb}</div>`;
 
 // hit rate, lowest first
-const rate=list=>list.map(([k,g])=>[k,days.reduce((s,d)=>s+Math.min(c(d,k)/g,1),0)/30]).sort((a,b)=>a[1]-b[1]);
+const rate=list=>list.map(([k,g])=>[k,days.reduce((s,d)=>s+Math.min(c(d,k)/g,1),0)/30]).sort((a,b)=>b[1]-a[1]);   // highest first; ties keep the log sheet order
 const rateRows=(list,cls)=>rate(list).map(([k,v])=>{const p=Math.round(v*100);
   return `<div class="goal-row"><span class="goal-label">${k}</span><div class="goal-progress"><div class="bar ${cls} ${p<50?"bar--low":""}"><i class="bar-fill" style="width:${p}%"></i></div><div class="caption">${p}%</div></div></div>`;}).join("");
-h+=`<h2 class="section-title">30 day hit rate, lowest first</h2><h3 class="subsection-title">consumables</h3>${rateRows(CONSUMABLES,"bar--consumable")}<h3 class="subsection-title">practices</h3>${rateRows(PRACTICES,"")}`;
+h+=`<h2 class="section-title">30 day hit rate, highest first</h2><h3 class="subsection-title">consumables</h3>${rateRows(SHOW_CONSUMABLES,"bar--consumable")}<h3 class="subsection-title">practices</h3>${rateRows(SHOW_PRACTICES,"")}`;
 
 // anything in the log that didn't match a goal
 const unk=Object.keys(unknown);
@@ -180,7 +188,6 @@ h+=`<ul class="legend">
   <li class="legend-item"><span class="legend-icon" aria-hidden="true">🐘</span>each filled elephant indicates a completed goal.</li>
 </ul>`;
 }
-
 // stepper sheet
 let li=0;
 h+=`<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-card">
