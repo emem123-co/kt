@@ -91,6 +91,14 @@ button.refresh{border:0;font-family:inherit;cursor:pointer}
 .sheet-foot .go:disabled{opacity:.4;cursor:default}
 .sheet-foot .ghost{background:transparent;color:var(--leaf);box-shadow:inset 0 0 0 2px var(--leaf)}
 .note{font-size:.85rem;color:var(--soft);margin-top:24px}
+.offline{display:flex;align-items:center;gap:14px;background:var(--panel);border-radius:14px;padding:14px 16px;margin-top:16px}
+.offline[hidden]{display:none}
+.empty{background:var(--panel);border-radius:14px;padding:32px 18px;margin-top:16px;text-align:center}
+.empty b{display:block;font-size:1.15rem;text-wrap:balance}
+.empty span{display:block;color:var(--soft);margin-top:4px}
+.offline img{width:84px;height:auto;flex:none}
+.offline b{display:block;font-size:1.05rem;text-wrap:balance}
+.offline span{display:block;color:var(--soft);font-size:.9rem;margin-top:2px;text-wrap:balance}
 </style>
 </head>
 <body>
@@ -144,17 +152,11 @@ const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const today=new Date(); const T=ds(today);
 const esc=s=>s.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
 
-let text=RAW, demo=false;
-if(!/\d{4}-\d{2}-\d{2}/.test(text)){ // no real data yet: show sample data
-  demo=true; const lines=[];
-  for(let i=0;i<45;i++){const d=ds(addDays(today,-i));
-    ALL.forEach(([k,g])=>{const wk=WEEKLY.some(w=>w[0]===k);
-      const n=Math.floor(Math.random()*(g+1.4));
-      for(let j=0;j<n;j++) if(!wk||Math.random()<.2){
-        const hr=7+Math.floor(Math.random()*14);
-        lines.push(`${d} ${hr%12||12}:${pad(Math.floor(Math.random()*60))} ${hr<12?"AM":"PM"}, ${k}`);}});}
-  text=lines.join("\n");
-}
+// the shortcut sends #d=<log> when health-log.txt exists, or #nofile when it doesn't
+const NO_FILE = location.hash === "#nofile";
+let text = RAW;
+const NO_DATA = !NO_FILE && !/\d{4}-\d{2}-\d{2}/.test(text);
+const EMPTY = NO_FILE || NO_DATA;
 
 // line format: 2026-10-01 12:51 AM, meditate
 const counts={}, todayLog=[], unknown={};
@@ -183,7 +185,14 @@ const LOG_GROUPS=[
 ];
 const LOG_ITEMS=LOG_GROUPS.flatMap(([,items])=>items);
 const made=today.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
-let h=`<div class="top"><div><h1>kt’s goal report</h1><p class="sub">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}${demo?" (sample data until you log something)":""}</p></div><button type="button" class="refresh" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
+let h=`<div class="top"><div><h1>kt’s goal report</h1><p class="sub">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}</p></div><button type="button" class="refresh" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
+// offline notice: the page itself can load offline (saved copy, see sw.js); this tells her why it looks the same
+h+=`<div class="offline" id="offline" role="status" hidden><img src="elephant.webp" alt="" width="84" height="98"><div><b>Oops. The herd lost its signal…</b><span>You’re offline, but your report is up to date and logging still works.</span></div></div>`;
+if(EMPTY){
+  h+= NO_FILE
+    ? `<div class="empty" role="status"><b>health-log.txt file does not exist</b><span>logging something will create it.</span></div>`
+    : `<div class="empty" role="status"><b>no data</b><span>tap log to add your first entry.</span></div>`;
+} else {
 h+=`<div class="scores"><div><b>${Math.round(scoreOf(CONSUMABLES,T)*100)}%</b><span>consumables today</span></div><div><b class="p">${Math.round(scoreOf(PRACTICES,T)*100)}%</b><span>practices today</span></div></div>`;
 
 const met=[...CONSUMABLES,...PRACTICES].filter(([k,g])=>c(T,k)>=g).length;
@@ -244,6 +253,7 @@ const unk=Object.keys(unknown);
 if(unk.length) h+=`<div class="warn">these log entries didn't match a goal, so they aren't counted: ${unk.map(u=>esc(u)+" ("+unknown[u]+")").join(", ")}. add a word from them to the matching goal at the top of the template.</div>`;
 
 h+=`<p class="note">a dot with a + is a bonus serving past the goal. each filled elephant at the top is a finished goal.</p>`;
+}
 // stepper sheet
 let li=0;
 h+=`<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-card">
@@ -253,6 +263,14 @@ LOG_GROUPS.map(([g,items])=>`<h3>${g}</h3>`+items.map(item=>{const i=li++;
 `</div><div class="sheet-foot"><button type="button" class="ghost" data-act="cancel">cancel</button><button type="button" class="go" data-act="ok" disabled>ok</button></div></div></div>`;
 
 document.getElementById("app").innerHTML=h;
+
+// show the offline notice whenever the phone has no connection
+const offlineNote=document.getElementById("offline");
+const syncOffline=()=>{offlineNote.hidden=navigator.onLine;};
+syncOffline(); addEventListener("online",syncOffline); addEventListener("offline",syncOffline);
+
+// save a copy of this page on the phone so it opens without internet
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
 
 const sheet=document.getElementById("sheet");
 const picks=LOG_ITEMS.map(()=>0);
