@@ -97,6 +97,7 @@ button.refresh{border:0;font-family:inherit;cursor:pointer}
 .offline{display:flex;align-items:center;gap:14px;background:var(--panel);border-radius:14px;padding:14px 16px;margin-top:16px}
 .offline[hidden]{display:none}
 .empty{background:var(--panel);border-radius:14px;padding:32px 18px;margin-top:16px;text-align:center}
+.empty img{display:block;width:180px;max-width:60%;height:auto;margin:0 auto 14px}
 .empty b{display:block;font-size:1.15rem;text-wrap:balance}
 .empty span{display:block;color:var(--soft);margin-top:4px}
 .offline img{width:84px;height:auto;flex:none}
@@ -201,7 +202,7 @@ h+=`<div class="offline" id="offline" role="status" hidden><img src="elephant.we
 if(EMPTY){
   h+= NO_FILE
     ? `<div class="empty" role="status"><b>health-log.txt file does not exist</b><span>logging something will create it.</span></div>`
-    : `<div class="empty" role="status"><b>no data</b><span>tap log to add your first entry.</span></div>`;
+    : `<div class="empty" role="status"><img src="nodata-elephant.webp" alt="" width="180" height="210"><b>no data</b><span>tap log to add your first entry.</span></div>`;
 } else {
 h+=`<div class="scores"><div><b>${Math.round(scoreOf(CONSUMABLES,T)*100)}%</b><span>consumables today</span></div><div><b class="p">${Math.round(scoreOf(PRACTICES,T)*100)}%</b><span>practices today</span></div></div>`;
 
