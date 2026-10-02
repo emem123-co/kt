@@ -175,8 +175,12 @@ h+=`<h2 class="section-title">30 day hit rate, lowest first</h2><h3 class="subse
 const unk=Object.keys(unknown);
 if(unk.length) h+=`<div class="warning">these log entries didn't match a goal, so they aren't counted: ${unk.map(u=>esc(u)+" ("+unknown[u]+")").join(", ")}. add a word from them to the matching goal at the top of the template.</div>`;
 
-h+=`<p class="footnote">a flame indicates a recorded log past the goal.</p><br/><p class="footnote">each filled elephant indicates a completed goal.</p>`;
+h+=`<ul class="legend">
+  <li class="legend-item"><span class="legend-icon"><img class="legend-icon-image" src="flame-consumable.webp" alt="" width="12" height="17"></span>a flame indicates a recorded log past the goal.</li>
+  <li class="legend-item"><span class="legend-icon" aria-hidden="true">🐘</span>each filled elephant indicates a completed goal.</li>
+</ul>`;
 }
+
 // stepper sheet
 let li=0;
 h+=`<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-card">
