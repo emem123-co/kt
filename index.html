@@ -94,7 +94,7 @@ button.refresh{border:0;font-family:inherit;cursor:pointer}
 </style>
 </head>
 <body>
-<main id="app"><h1>kt’s goal report</h1><p class="sub">the page loaded, but scripts aren’t running in this viewer, so the charts can’t draw. open it with the daily goal report shortcut instead.</p></main>
+<main id="app"><h1>kt’s goal report</h1><p class="sub">the page loaded, but scripts aren’t running in this viewer, so the charts can’t draw. open it with the kt health logger shortcut instead.</p></main>
 <script>
 window.onerror=function(msg,src,line){document.getElementById("app").innerHTML='<h1>kt’s goal report</h1><p class="sub">something in the report broke: '+msg+' (line '+line+')</p>';};
 </script>
@@ -173,7 +173,7 @@ const scoreOf=(list,d)=>list.reduce((s,[k,g])=>s+Math.min(c(d,k),g),0)/list.redu
 
 // tapping log opens the stepper sheet. ok sends one line per serving to the logger shortcut,
 // which writes them to health-log.txt and reopens this report. match the logger's exact name.
-const LOGGER_NAME="daily goal logger";
+const LOGGER_NAME="kt health data processor";
 const MAX_SERVINGS=10;
 // these are the exact words written to the log, same as the lists in the logger shortcut
 const LOG_GROUPS=[
