@@ -175,7 +175,7 @@ h+=`<h2 class="section-title">30 day hit rate, lowest first</h2><h3 class="subse
 const unk=Object.keys(unknown);
 if(unk.length) h+=`<div class="warning">these log entries didn't match a goal, so they aren't counted: ${unk.map(u=>esc(u)+" ("+unknown[u]+")").join(", ")}. add a word from them to the matching goal at the top of the template.</div>`;
 
-h+=`<p class="footnote">a dot with a + is a bonus serving past the goal. each filled elephant at the top is a finished goal.</p>`;
+h+=`<p class="footnote">a flame is a bonus serving past the goal. each filled elephant at the top is a finished goal.</p>`;
 }
 // stepper sheet
 let li=0;
