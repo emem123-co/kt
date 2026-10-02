@@ -1,7 +1,7 @@
-// kt's goal report: keeps a copy of the page on the phone so it opens offline.
+// kt’s health logger: keeps a copy of the page on the phone so it opens offline.
 // her data never touches this file; it arrives in the link (#d=...) from the shortcut.
 // bump the version when you deploy changes, so old copies get replaced.
-const CACHE = "kt-report-v13";
+const CACHE = "kt-report-v14";
 const FILES = [
   "./", "./index.html",
   "./theme.css", "./report.css", "./sheet.css",
