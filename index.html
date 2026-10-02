@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>kt’s goal report</title>
+<title>kt’s health logger</title>
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="report.css">
 <link rel="stylesheet" href="sheet.css">
@@ -107,11 +107,11 @@ const LOG_ITEMS=LOG_GROUPS.flatMap(([,items])=>items);
 const made=today.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
 let h=`<div class="report-header"><div class="report-header-text"><h1 class="page-title">kt’s goal report</h1><p class="page-subtitle">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}</p></div><button type="button" class="log-button" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg class="log-button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
 // offline notice: the page itself can load offline (saved copy, see sw.js); this tells her why it looks the same
-h+=`<div class="offline-banner" id="offline" role="status" hidden><img class="offline-banner-image" src="elephant.webp" alt="" width="84" height="98"><div class="offline-banner-text"><b class="offline-banner-title">oops. the herd lost its signal…</b><span class="offline-banner-message">you’re offline, but your report is up to date and logging still works.</span></div></div>`;
+h+=`<div class="offline-banner" id="offline" role="status" hidden><img class="offline-banner-image" src="elephant.webp" alt="" width="84" height="98"><div class="offline-banner-text"><b class="offline-banner-title">oops. the herd lost its signal…</b><span class="offline-banner-message">you’re offline, but you can still log progress with + log.</span></div></div>`;
 if(EMPTY){
   h+= NO_FILE
     ? `<div class="empty-state" role="status"><b class="empty-state-title">health-log.txt file does not exist</b><span class="empty-state-message">logging something will create it.</span></div>`
-    : `<div class="empty-state" role="status"><img class="empty-state-image" src="nodata-elephant.webp" alt="" width="180" height="210"><b class="empty-state-title">no data</b><span class="empty-state-message">tap log to add your first entry.</span></div>`;
+    : `<div class="empty-state" role="status"><img class="empty-state-image" src="nodata-elephant.webp" alt="" width="180" height="210"><b class="empty-state-title">no data</b><span class="empty-state-message">tap + log to add your first entry.</span></div>`;
 } else {
 h+=`<div class="scores"><div class="score"><b class="score-value">${Math.round(scoreOf(CONSUMABLES,T)*100)}%</b><span class="score-label">consumables today</span></div><div class="score"><b class="score-value score-value--practice">${Math.round(scoreOf(PRACTICES,T)*100)}%</b><span class="score-label">practices today</span></div></div>`;
 
@@ -175,7 +175,7 @@ h+=`<h2 class="section-title">30 day hit rate, lowest first</h2><h3 class="subse
 const unk=Object.keys(unknown);
 if(unk.length) h+=`<div class="warning">these log entries didn't match a goal, so they aren't counted: ${unk.map(u=>esc(u)+" ("+unknown[u]+")").join(", ")}. add a word from them to the matching goal at the top of the template.</div>`;
 
-h+=`<p class="footnote">a flame is a bonus serving past the goal. each filled elephant at the top is a finished goal.</p>`;
+h+=`<p class="footnote">a flame indicates a recorded log past the goal.</p><br/><p class="footnote">each filled elephant indicates a completed goal.</p>`;
 }
 // stepper sheet
 let li=0;
