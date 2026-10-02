@@ -77,3 +77,8 @@
 
 .stepper-button:focus-visible,
 .sheet-button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+
+/* ---------- no double-tap zoom while tapping + and − quickly ---------- */
+/* temporary: "manipulation" keeps scrolling and pinch zoom but turns off double-tap zoom inside the sheet */
+.sheet,
+.sheet *{touch-action:manipulation}

@@ -87,18 +87,7 @@
 .dot--bonus{background:var(--leaf);box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--leaf);margin:0 1px}
 .dot--bonus.dot--practice{background:var(--sky);box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--sky)}
 .dot--bonus::after{content:"+";color:var(--panel);font-weight:700;font-size:13px;line-height:1}
-/* "++" pill in the 9th space: more were logged than the row can show */
-.dot--overflow{
-  width:auto;
-  aspect-ratio:auto;
-  height:clamp(12px,calc((100% - 58px) / 9),20px);
-  padding:0 4px;
-  border-radius:10px;
-  background:var(--leaf);
-  margin:0 1px;
-}
-.dot--overflow.dot--practice{background:var(--sky)}
-.dot--overflow::after{content:"++";color:var(--panel);font-weight:700;font-size:12px;line-height:1;letter-spacing:-1px}
+/* rows stop at 9 circles (see MAX_DOTS in index.html); extra servings are still saved and counted */
 
 /* ---------- logged today ---------- */
 .today-log{list-style:none;margin:0;padding:0}

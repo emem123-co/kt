@@ -120,13 +120,11 @@ const GOALS=CONSUMABLES.length+PRACTICES.length;
 const SHADOW=`<svg class="herd-shadow" viewBox="0 0 32 27" aria-hidden="true"><path class="herd-shadow-tail" d="M29 11 q3 2 2 6"/><rect x="12" y="15" width="3.6" height="10" rx="1.5"/><rect x="17.4" y="16" width="3.6" height="9" rx="1.5"/><rect x="22.6" y="16" width="3.6" height="9" rx="1.5"/><rect x="26.8" y="14" width="3.6" height="11" rx="1.5"/><ellipse cx="20" cy="12" rx="10" ry="7.5"/><circle cx="9" cy="10" r="6.5"/><path d="M3.4 12 q-2.8 6 0 11.8 q1.8 1 2.6 -0.6 q-1.4 -4.6 1.6 -9.2 z"/><ellipse cx="13" cy="10.5" rx="3.6" ry="5"/></svg>`;
 h+=`<div class="herd" role="img" aria-label="${met} of ${GOALS} goals met today"><div class="herd-pen">${'<div class="herd-elephant">🐘</div>'.repeat(met)}${`<div class="herd-elephant">${SHADOW}</div>`.repeat(GOALS-met)}</div><span class="herd-caption">${met} of ${GOALS} goals met today</span></div>`;
 
-// each row shows at most MAX_DOTS circles. past that, the last circle becomes "++",
-// meaning more servings were logged than the row can show (the row's label says how many).
+// each row shows at most MAX_DOTS circles, even if more were logged.
+// every serving is still saved in health-log.txt and still counts everywhere else; only the circles stop at 9.
 const MAX_DOTS=9;
-const dotRows=(list,cls)=>list.map(([k,g])=>{const n=c(T,k), slots=Math.max(g,n);
-  const over=slots>MAX_DOTS, shown=over?MAX_DOTS-1:slots; let dots="";
+const dotRows=(list,cls)=>list.map(([k,g])=>{const n=c(T,k), shown=Math.min(Math.max(g,n),MAX_DOTS); let dots="";
   for(let i=0;i<shown;i++) dots+=`<div class="dot ${i<Math.min(n,g)?"dot--met "+cls:i>=g?"dot--bonus "+cls:""}"></div>`;
-  if(over) dots+=`<div class="dot dot--overflow ${cls}" title="${n} logged" aria-label="${n} logged in total"></div>`;
   return `<div class="goal-row"><span class="goal-label">${k}</span><div class="dots">${dots}</div></div>`;}).join("");
 
 // consumables
