@@ -59,7 +59,7 @@ td.l{white-space:nowrap;padding-right:6px}
 td.g{padding-top:8px;font-weight:600;color:var(--soft)}
 .log{list-style:none;margin:0;padding:0}
 .log li{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--empty);font-size:.92rem}
-.log time{color:var(--soft);min-width:72px}
+.log time{color:var(--soft);min-width:96px;font-variant-numeric:tabular-nums}
 .warn{background:var(--panel);border-left:4px solid var(--beet);padding:10px 12px;border-radius:8px;font-size:.88rem;margin-top:24px}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .refresh{flex:none;margin-top:6px;padding:9px 14px;border-radius:999px;background:var(--leaf);color:var(--panel);
@@ -159,6 +159,13 @@ const NO_DATA = !NO_FILE && !/\d{4}-\d{2}-\d{2}/.test(text);
 const EMPTY = NO_FILE || NO_DATA;
 
 // line format: 2026-10-01 12:51 AM, meditate
+// the log stores 24 hour time (HH:mm:ss). show it as 12 hour: "20:54:12" becomes "8:54:12 PM".
+// also handles older entries like "08:05 AM" or "20:54", and ignores a trailing time zone like "-0400".
+const niceTime=t=>{const m=t.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]\.?m\.?)?/i);
+  if(!m) return t.trim();
+  let hr=+m[1]; const ap=m[4]?m[4].replace(/\./g,"").toUpperCase():(hr>=12?"PM":"AM");
+  if(!m[4]) hr=hr%12||12;
+  return `${hr}:${m[2]}${m[3]?":"+m[3]:""} ${ap}`;};
 const counts={}, todayLog=[], unknown={};
 text.split(/\r?\n/).forEach(line=>{
   // line format: timestamp, item, id, location. id and location are optional and ignored here.
@@ -168,7 +175,7 @@ text.split(/\r?\n/).forEach(line=>{
   const hit=ALL.find(([,,re])=>re.test(item));
   if(!hit){unknown[item]=(unknown[item]||0)+1; return;}
   (counts[d]??={}); counts[d][hit[0]]=(counts[d][hit[0]]||0)+1;
-  if(d===T) todayLog.push([time.trim(),rawItem.trim()]);
+  if(d===T) todayLog.push([niceTime(time),rawItem.trim()]);
 });
 const c=(d,k)=>(counts[d]&&counts[d][k])||0;
 const scoreOf=(list,d)=>list.reduce((s,[k,g])=>s+Math.min(c(d,k),g),0)/list.reduce((s,[,g])=>s+g,0);

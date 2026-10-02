@@ -1,7 +1,7 @@
 // kt's goal report: keeps a copy of the page on the phone so it opens offline.
 // her data never touches this file; it arrives in the link (#d=...) from the shortcut.
 // bump the version when you deploy changes, so old copies get replaced.
-const CACHE = "kt-report-v1";
+const CACHE = "kt-report-v2";
 const FILES = ["./", "./index.html", "./elephant.webp"];
 
 self.addEventListener("install", e => {
