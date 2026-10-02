@@ -85,11 +85,14 @@
 .dot--met.dot--practice{background:var(--sky)}
 /* flame icon: a bonus serving past the goal.
    flame-consumable.webp has a green (leaf) center, flame-practice.webp a blue (sky) center.
-   it's drawn larger than a goal circle but overhangs instead of changing the row layout. */
+   the box hugs the icon (82% of a circle's width, slightly taller than a circle), so the gap
+   between flames matches the gap between circles. its bottom lines up with the circles' bottoms,
+   and the bit of extra height reaches upward without making the row taller. */
 .dot--bonus{
+  width:calc(clamp(12px,calc((100% - 58px) / 9),20px) * .82);
   aspect-ratio:.71;          /* the icon's own width-to-height shape */
-  margin-block:-4px;         /* the extra height overhangs, so rows with flames stay the same height */
-  transform:scale(1.2);      /* how much bigger than a goal circle */
+  align-self:flex-end;       /* sit on the same baseline as the circles */
+  margin-top:calc(clamp(12px,calc((100% - 58px) / 9),20px) * -.155);
   border-radius:0;
   background:url("flame-consumable.webp") center / contain no-repeat;
 }
