@@ -27,16 +27,19 @@ h3{font-size:1rem;font-weight:600;margin:20px 0 6px;color:var(--soft)}
 .scores div b{display:block;font-size:2.6rem;line-height:1;color:var(--leaf)}
 .scores div b.p{color:var(--sky)}
 .scores span{font-size:.85rem;color:var(--soft)}
-.row{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:10px;padding:6px 0;
+.row{display:grid;grid-template-columns:clamp(88px,30%,120px) minmax(0,1fr);align-items:center;gap:10px;padding:6px 0;
   border-bottom:1px solid var(--empty)}
 .row span{font-size:.92rem}
-.dots{display:flex;gap:6px;flex-wrap:wrap}
-.dot{width:20px;height:20px;border-radius:50%;background:var(--empty);display:grid;place-items:center}
+.dots{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;min-width:0}
+.dot{flex:none;width:clamp(12px,calc((100% - 58px) / 9),20px);aspect-ratio:1;border-radius:50%;background:var(--empty);display:grid;place-items:center}
 .dot.on{background:var(--leaf)}
 .dot.on.p{background:var(--sky)}
-.dot.extra{background:var(--leaf);box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--leaf);margin:0 2px}
-.dot.extra.p{background:var(--sky);box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--sky)}
-.dot.extra::after{content:"+";color:var(--panel);font-weight:700;font-size:15px;line-height:1}
+.dot.extra{background:var(--leaf);box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--leaf);margin:0 1px}
+.dot.extra.p{background:var(--sky);box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--sky)}
+.dot.extra::after{content:"+";color:var(--panel);font-weight:700;font-size:13px;line-height:1}
+.dot.more{width:auto;aspect-ratio:auto;height:clamp(12px,calc((100% - 58px) / 9),20px);padding:0 4px;border-radius:10px;background:var(--leaf);margin:0 1px}
+.dot.more.p{background:var(--sky)}
+.dot.more::after{content:"++";color:var(--panel);font-weight:700;font-size:12px;line-height:1;letter-spacing:-1px}
 .herd{margin:16px 0 0}
 .herd .pen{display:flex;flex-wrap:wrap;gap:4px}
 .herd .e{width:30px;height:30px;display:grid;place-items:center;font-size:1.45rem;line-height:1}
@@ -207,8 +210,13 @@ const GOALS=CONSUMABLES.length+PRACTICES.length;
 const SHADOW=`<svg viewBox="0 0 32 27" aria-hidden="true"><path class="tail" d="M29 11 q3 2 2 6"/><rect x="12" y="15" width="3.6" height="10" rx="1.5"/><rect x="17.4" y="16" width="3.6" height="9" rx="1.5"/><rect x="22.6" y="16" width="3.6" height="9" rx="1.5"/><rect x="26.8" y="14" width="3.6" height="11" rx="1.5"/><ellipse cx="20" cy="12" rx="10" ry="7.5"/><circle cx="9" cy="10" r="6.5"/><path d="M3.4 12 q-2.8 6 0 11.8 q1.8 1 2.6 -0.6 q-1.4 -4.6 1.6 -9.2 z"/><ellipse cx="13" cy="10.5" rx="3.6" ry="5"/></svg>`;
 h+=`<div class="herd" role="img" aria-label="${met} of ${GOALS} goals met today"><div class="pen">${'<div class="e">🐘</div>'.repeat(met)}${`<div class="e">${SHADOW}</div>`.repeat(GOALS-met)}</div><span>${met} of ${GOALS} goals met today</span></div>`;
 
-const dotRows=(list,cls)=>list.map(([k,g])=>{const n=c(T,k);let dots="";
-  for(let i=0;i<Math.max(g,n);i++) dots+=`<div class="dot ${i<Math.min(n,g)?"on "+cls:i>=g?"extra "+cls:""}"></div>`;
+// each row shows at most MAX_DOTS circles. past that, the last circle becomes "++",
+// meaning more servings were logged than the row can show (the row's label says how many).
+const MAX_DOTS=9;
+const dotRows=(list,cls)=>list.map(([k,g])=>{const n=c(T,k), slots=Math.max(g,n);
+  const over=slots>MAX_DOTS, shown=over?MAX_DOTS-1:slots; let dots="";
+  for(let i=0;i<shown;i++) dots+=`<div class="dot ${i<Math.min(n,g)?"on "+cls:i>=g?"extra "+cls:""}"></div>`;
+  if(over) dots+=`<div class="dot more ${cls}" title="${n} logged" aria-label="${n} logged in total"></div>`;
   return `<div class="row"><span>${k}</span><div class="dots">${dots}</div></div>`;}).join("");
 
 // consumables
@@ -275,6 +283,10 @@ document.getElementById("app").innerHTML=h;
 const offlineNote=document.getElementById("offline");
 const syncOffline=()=>{offlineNote.hidden=navigator.onLine;};
 syncOffline(); addEventListener("online",syncOffline); addEventListener("offline",syncOffline);
+
+// if the sheet is reused and only the #d=... part of the link changes, the browser doesn't reload
+// the page on its own, so it would keep showing the old report. reload so the new data is drawn.
+addEventListener("hashchange",()=>location.reload());
 
 // save a copy of this page on the phone so it opens without internet
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
