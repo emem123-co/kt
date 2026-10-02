@@ -16,7 +16,8 @@
     --leaf:#6FBF7F; --beet:#E07A98; --turmeric:#E8BC4D; --empty:#2E3830; --sky:#7DB8DC;}
 }
 *{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);
+/* every piece of displayed text is lowercase, including dates, am/pm and logged item names */
+body{text-transform:lowercase;margin:0;background:var(--bg);color:var(--ink);
   font-family:"Avenir Next","Avenir",-apple-system,system-ui,sans-serif;line-height:1.4}
 main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
 h1{font-size:2.1rem;font-weight:700;margin:0;letter-spacing:-.02em}
@@ -198,7 +199,7 @@ const LOG_ITEMS=LOG_GROUPS.flatMap(([,items])=>items);
 const made=today.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
 let h=`<div class="top"><div><h1>kt’s goal report</h1><p class="sub">${today.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}, as of ${made}</p></div><button type="button" class="refresh" data-act="open" aria-haspopup="dialog" aria-label="log something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>log</button></div>`;
 // offline notice: the page itself can load offline (saved copy, see sw.js); this tells her why it looks the same
-h+=`<div class="offline" id="offline" role="status" hidden><img src="elephant.webp" alt="" width="84" height="98"><div><b>Oops. The herd lost its signal…</b><span>You’re offline, but your report is up to date and logging still works.</span></div></div>`;
+h+=`<div class="offline" id="offline" role="status" hidden><img src="elephant.webp" alt="" width="84" height="98"><div><b>oops. the herd lost its signal…</b><span>you’re offline, but your report is up to date and logging still works.</span></div></div>`;
 if(EMPTY){
   h+= NO_FILE
     ? `<div class="empty" role="status"><b>health-log.txt file does not exist</b><span>logging something will create it.</span></div>`
