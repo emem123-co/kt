@@ -196,7 +196,7 @@ h+=`<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-la
 <div class="sheet-head"><h2 class="section-title sheet-title" id="sheet-title">log servings</h2><p class="sheet-hint">tap + once per serving, up to ${MAX_SERVINGS} each.</p></div><div class="sheet-body">`+
 LOG_GROUPS.map(([g,items])=>`<h3 class="subsection-title">${g}</h3>`+items.map(item=>{const i=li++;
   return `<div class="step-row" data-row="${i}"><span class="step-label">${esc(item)}</span><div class="stepper"><button type="button" class="stepper-button" data-i="${i}" data-d="-1" aria-label="one less ${esc(item)}" disabled>−</button><output class="stepper-count" aria-live="polite">0</output><button type="button" class="stepper-button" data-i="${i}" data-d="1" aria-label="one more ${esc(item)}">+</button></div></div>`;}).join("")).join("")+
-`</div><div class="sheet-foot"><button type="button" class="sheet-button sheet-button--secondary" data-act="cancel">cancel</button><button type="button" class="sheet-button sheet-button--primary" data-act="ok" disabled>ok</button></div></div></div>`;
+`</div><div class="sheet-foot"><button type="button" class="sheet-button sheet-button--secondary" data-act="cancel">cancel</button><a class="sheet-button sheet-button--primary" data-act="ok" href="#" aria-disabled="true">ok</a></div></div></div>`;
 
 document.getElementById("app").innerHTML=h;
 
@@ -219,21 +219,25 @@ const paint=()=>{
     row.querySelector("output").textContent=n; row.classList.toggle("step-row--picked",n>0);
     row.querySelector('[data-d="-1"]').disabled=n<=0; row.querySelector('[data-d="1"]').disabled=n>=MAX_SERVINGS;});
   const total=picks.reduce((a,b)=>a+b,0), ok=sheet.querySelector('[data-act="ok"]');
-  ok.disabled=total===0; ok.textContent=total?`ok (${total})`:"ok";
+  ok.textContent=total?`ok (${total})`:"ok";
+  // ok is a real link to the shortcut, rebuilt on every change, so tapping it opens shortcuts directly
+  const lines=[]; picks.forEach((n,i)=>{for(let j=0;j<n;j++) lines.push(LOG_ITEMS[i]);});
+  ok.setAttribute("aria-disabled",total===0?"true":"false");
+  ok.href=total?`shortcuts://run-shortcut?name=${encodeURIComponent(LOGGER_NAME)}&input=text&text=${encodeURIComponent(lines.join("\n"))}`:"#";
 };
 const openSheet=()=>{sheet.hidden=false;document.body.style.overflow="hidden";sheet.querySelector('[data-d="1"]').focus();};
 const closeSheet=()=>{picks.fill(0);paint();sheet.hidden=true;document.body.style.overflow="";};
 document.addEventListener("click",e=>{
+  const okLink=e.target.closest('a[data-act="ok"]');
+  if(okLink){
+    if(okLink.getAttribute("aria-disabled")==="true"){ e.preventDefault(); return; }
+    setTimeout(closeSheet,300);   // let the link open shortcuts, then tidy up
+    return;
+  }
   const b=e.target.closest("button"); if(!b) return;
   if(b.dataset.i!==undefined){const i=+b.dataset.i;picks[i]=Math.max(0,Math.min(MAX_SERVINGS,picks[i]+ +b.dataset.d));paint();return;}
   if(b.dataset.act==="open") openSheet();
   if(b.dataset.act==="cancel") closeSheet();
-  if(b.dataset.act==="ok"){
-    const lines=[]; picks.forEach((n,i)=>{for(let j=0;j<n;j++) lines.push(LOG_ITEMS[i]);});
-    if(!lines.length) return;
-    const url=`shortcuts://run-shortcut?name=${encodeURIComponent(LOGGER_NAME)}&input=text&text=${encodeURIComponent(lines.join("\n"))}`;
-    closeSheet(); location.href=url;
-  }
 });
 sheet.addEventListener("click",e=>{if(e.target===sheet) closeSheet();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden) closeSheet();});

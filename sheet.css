@@ -73,6 +73,9 @@
 }
 .sheet-button--primary{background:var(--leaf);color:var(--panel)}
 .sheet-button--primary:disabled{opacity:.4;cursor:default}
+/* ok is a link, so center its text like a button and grey it out until something is picked */
+a.sheet-button{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.sheet-button[aria-disabled="true"]{opacity:.4;pointer-events:none;cursor:default}
 .sheet-button--secondary{background:transparent;color:var(--leaf);box-shadow:inset 0 0 0 2px var(--leaf)}
 
 .stepper-button:focus-visible,
