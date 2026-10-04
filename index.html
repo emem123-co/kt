@@ -205,13 +205,13 @@ LOG_GROUPS.map(([g,items])=>`<h3 class="subsection-title">${g}</h3>`+items.map(i
 
 document.getElementById("app").innerHTML=h;
 
-// quick sparkly "saved" toast after logging. it fades in and out in about a second, sits at the bottom,
+// sparkly "saved" toast after logging. it fades in and out over about 5 seconds, sits near the bottom,
 // and can't be tapped, so it never covers the close button or blocks anything on the page.
 if(SAVED>0){
   const toast=document.createElement("div");
   toast.className="save-toast"; toast.setAttribute("role","status");
   document.body.appendChild(toast);
-  requestAnimationFrame(()=>{toast.textContent=`🎉 ${SAVED} ${SAVED===1?"entry":"entries"} saved`;});
+  requestAnimationFrame(()=>{toast.textContent=`${SAVED} ${SAVED===1?"entry":"entries"} saved 🎈`;});
   toast.addEventListener("animationend",e=>{if(e.animationName==="save-toast-fade") toast.remove();});
   // drop saved=... from the link so a refresh doesn't show the toast again (this doesn't reload the page)
   history.replaceState(null,"",location.pathname+location.search+HASH);
