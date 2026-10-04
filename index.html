@@ -205,14 +205,24 @@ LOG_GROUPS.map(([g,items])=>`<h3 class="subsection-title">${g}</h3>`+items.map(i
 
 document.getElementById("app").innerHTML=h;
 
-// sparkly "saved" toast after logging. it fades in and out over about 5 seconds, sits near the bottom,
-// and can't be tapped, so it never covers the close button or blocks anything on the page.
+// retro glitter "saved" toast after logging. it rises from the bottom, sits for a second, bounces,
+// then glides back down off screen (about 3 seconds total). it can't be tapped, so it never covers
+// the close button or blocks anything on the page. the look and motion live in report.css.
 if(SAVED>0){
-  const toast=document.createElement("div");
-  toast.className="save-toast"; toast.setAttribute("role","status");
-  document.body.appendChild(toast);
-  requestAnimationFrame(()=>{toast.textContent=`${SAVED} ${SAVED===1?"entry":"entries"} saved 🎈`;});
-  toast.addEventListener("animationend",e=>{if(e.animationName==="save-toast-fade") toast.remove();});
+  const lane=document.createElement("div"); lane.className="save-toast-lane";
+  const toast=document.createElement("div"); toast.className="save-toast"; toast.setAttribute("role","status");
+  const msg=document.createElement("span"); toast.appendChild(msg);
+  // glitter stars spaced around the edge of the pill, each dripping on its own beat
+  const GLYPHS=["✦","✧","★","✶","⋆"];
+  const RING=[[6,4],[20,0],[35,0],[50,0],[65,0],[80,0],[94,4],[101,50],[94,96],[80,100],[65,100],[50,100],[35,100],[20,100],[6,96],[-1,50]];
+  RING.forEach(([x,y],n)=>{const star=document.createElement("span");
+    star.className="save-toast-star"; star.setAttribute("aria-hidden","true");
+    star.textContent=GLYPHS[n%GLYPHS.length];
+    star.style.left=x+"%"; star.style.top=y+"%"; star.style.animationDelay=((n*0.37)%1.1).toFixed(2)+"s";
+    toast.appendChild(star);});
+  lane.appendChild(toast); document.body.appendChild(lane);
+  requestAnimationFrame(()=>{msg.textContent=`${SAVED} ${SAVED===1?"entry":"entries"} saved 🎈`;});
+  toast.addEventListener("animationend",e=>{if(e.animationName.startsWith("save-toast-trip")) lane.remove();});
   // drop saved=... from the link so a refresh doesn't show the toast again (this doesn't reload the page)
   history.replaceState(null,"",location.pathname+location.search+HASH);
 }

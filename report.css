@@ -138,60 +138,66 @@
 .legend-icon{flex:none;width:18px;display:grid;place-items:center;font-size:1rem;line-height:1}
 .legend-icon-image{display:block;width:12px;height:auto}
 
-/* ---------- save toast: a quick sparkly "saved" after logging ---------- */
-/* about 5 seconds total: fades in, holds, fades out, then removes itself.
-   it sits near the bottom and ignores taps, so it never blocks the close button or the report. */
-.save-toast{
+/* ---------- save toast: retro glitter "saved" after logging ---------- */
+/* about 3.2 seconds: rises from below while fading in, sits 1 second, bounces up,
+   then glides down off screen while fading to almost nothing, and removes itself.
+   it ignores taps, so it never blocks the close button or the report. */
+.save-toast-lane{
   position:fixed;
-  left:50%;
-  bottom:calc(72px + env(safe-area-inset-bottom,0px));
-  transform:translateX(-50%);
+  left:0;
+  right:0;
+  bottom:calc(56px + env(safe-area-inset-bottom,0px));
   z-index:50;
+  display:flex;
+  justify-content:center;
   pointer-events:none;
+}
+.save-toast{
+  position:relative;
   padding:8px 18px;
-  border:2.5px solid transparent;
   border-radius:999px;
-  /* the shimmer: a rainbow of the theme colors that slides around the border */
-  background:
-    linear-gradient(var(--panel),var(--panel)) padding-box,
-    repeating-linear-gradient(90deg,var(--turmeric) 0,var(--beet) 22px,var(--sky) 44px,var(--leaf) 66px,var(--turmeric) 88px) border-box;
-  box-shadow:0 0 14px color-mix(in srgb,var(--turmeric) 50%,transparent);
+  background:var(--panel);
   color:var(--ink);
   font-size:1rem;
   font-weight:600;
   white-space:nowrap;
   opacity:0;
-  animation:save-toast-fade 5s ease forwards, save-toast-shimmer 1.2s linear infinite;
+  animation:save-toast-trip 3.2s forwards;
 }
-/* two little glitter stars on the corners */
-.save-toast::before,
-.save-toast::after{
-  content:"✦";
-  position:absolute;
-  color:var(--turmeric);
-  font-size:.9rem;
-  line-height:1;
-  animation:save-toast-twinkle .7s ease-in-out infinite alternate;
+@keyframes save-toast-trip{
+  0%{transform:translateY(150px);opacity:.12;animation-timing-function:cubic-bezier(.2,.8,.3,1)}
+  22%{transform:translateY(0);opacity:1}
+  53%{transform:translateY(0);opacity:1;animation-timing-function:cubic-bezier(.3,0,.5,1)}
+  61%{transform:translateY(-16px);opacity:1;animation-timing-function:cubic-bezier(.5,0,.9,.5)}
+  96%{transform:translateY(170px);opacity:.12}
+  100%{transform:translateY(170px);opacity:0}
 }
-.save-toast::before{top:-9px;left:-5px}
-.save-toast::after{bottom:-9px;right:-5px;animation-delay:.35s}
 
-@keyframes save-toast-fade{
-  0%{opacity:0}
-  12%{opacity:1}
-  84%{opacity:1}
-  100%{opacity:0}
+/* the glitter: stars around the invisible border that sparkle and drip off the edges */
+.save-toast-star{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  line-height:1;
+  font-size:8px;
+  text-shadow:0 0 3px #fff,0 0 6px #fff;
+  animation:save-toast-drip 1.1s ease-in infinite;
 }
-@keyframes save-toast-shimmer{
-  from{background-position:0 0,0 0}
-  to{background-position:0 0,88px 0}
+.save-toast-star:nth-of-type(3n+1){font-size:13px}
+.save-toast-star:nth-of-type(3n+2){font-size:10px}
+.save-toast-star:nth-of-type(5n+1){color:#D9A21B}
+.save-toast-star:nth-of-type(5n+2){color:#E07A98}
+.save-toast-star:nth-of-type(5n+3){color:#2F6A8F}
+.save-toast-star:nth-of-type(5n+4){color:#E8BC4D}
+.save-toast-star:nth-of-type(5n){color:#9B2F4F}
+@keyframes save-toast-drip{
+  0%{opacity:0;translate:0 -4px;scale:.6}
+  20%{opacity:1;scale:1.2}
+  100%{opacity:0;translate:0 16px;scale:.5;rotate:90deg}
 }
-@keyframes save-toast-twinkle{
-  from{opacity:.3;transform:scale(.6) rotate(0deg)}
-  to{opacity:1;transform:scale(1.15) rotate(45deg)}
-}
-/* reduced motion: keep the fade, drop the moving shimmer and twinkle */
+
+/* reduced motion: a gentle fade in place, with the stars sitting still */
 @media (prefers-reduced-motion:reduce){
-  .save-toast{animation:save-toast-fade 5s ease forwards}
-  .save-toast::before,.save-toast::after{animation:none}
+  .save-toast{animation:save-toast-trip-calm 3.2s forwards}
+  .save-toast-star{animation:none}
+  @keyframes save-toast-trip-calm{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}}
 }
