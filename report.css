@@ -137,3 +137,61 @@
 /* both icons sit in the same-width box, so the two descriptions start at the same spot */
 .legend-icon{flex:none;width:18px;display:grid;place-items:center;font-size:1rem;line-height:1}
 .legend-icon-image{display:block;width:12px;height:auto}
+
+/* ---------- save toast: a quick sparkly "saved" after logging ---------- */
+/* about 1 second total: fades in, holds, fades out, then removes itself.
+   it sits at the bottom and ignores taps, so it never blocks the close button or the report. */
+.save-toast{
+  position:fixed;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);
+  z-index:50;
+  pointer-events:none;
+  padding:4px 12px;
+  border:2px solid transparent;
+  border-radius:999px;
+  /* the shimmer: a rainbow of the theme colors that slides around the border */
+  background:
+    linear-gradient(var(--panel),var(--panel)) padding-box,
+    repeating-linear-gradient(90deg,var(--turmeric) 0,var(--beet) 18px,var(--sky) 36px,var(--leaf) 54px,var(--turmeric) 72px) border-box;
+  box-shadow:0 0 10px color-mix(in srgb,var(--turmeric) 50%,transparent);
+  color:var(--ink);
+  font-size:.82rem;
+  font-weight:600;
+  white-space:nowrap;
+  opacity:0;
+  animation:save-toast-fade 1s ease forwards, save-toast-shimmer .45s linear infinite;
+}
+/* two little glitter stars on the corners */
+.save-toast::before,
+.save-toast::after{
+  content:"✦";
+  position:absolute;
+  color:var(--turmeric);
+  font-size:.7rem;
+  line-height:1;
+  animation:save-toast-twinkle .5s ease-in-out infinite alternate;
+}
+.save-toast::before{top:-7px;left:-4px}
+.save-toast::after{bottom:-7px;right:-4px;animation-delay:.25s}
+
+@keyframes save-toast-fade{
+  0%{opacity:0}
+  15%{opacity:1}
+  70%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes save-toast-shimmer{
+  from{background-position:0 0,0 0}
+  to{background-position:0 0,72px 0}
+}
+@keyframes save-toast-twinkle{
+  from{opacity:.3;transform:scale(.6) rotate(0deg)}
+  to{opacity:1;transform:scale(1.1) rotate(45deg)}
+}
+/* reduced motion: keep the fade, drop the moving shimmer and twinkle */
+@media (prefers-reduced-motion:reduce){
+  .save-toast{animation:save-toast-fade 1s ease forwards}
+  .save-toast::before,.save-toast::after{animation:none}
+}

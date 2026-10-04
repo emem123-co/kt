@@ -16,11 +16,16 @@ window.onerror=function(msg,src,line){document.getElementById("app").innerHTML='
 <script>
 // the report shortcut opens this page as .../#d=<health-log.txt, base64 then url encoded>.
 // everything after # stays on the phone and is never sent to the host.
+// after a save, the processor shortcut puts the count first: #saved=3&d=... (count only, never 0)
+const SAVED_MATCH = location.hash.match(/^#saved=(\d+)&?/);
+const SAVED = SAVED_MATCH ? +SAVED_MATCH[1] : 0;
+// the rest of the page reads HASH, which is the link without the saved part
+const HASH = SAVED_MATCH ? "#" + location.hash.slice(SAVED_MATCH[0].length) : location.hash;
 let RAW = "";
 try {
   // the data can arrive percent-encoded once, twice (some viewers re-encode the link), or not at all,
   // and base64 may end with "=" padding. undo every layer, keep only base64 letters, then re-pad.
-  let enc = location.hash.replace(/^#d=/, "");
+  let enc = HASH.replace(/^#d=/, "");
   for (let k = 0; k < 3 && /%[0-9a-f]{2}/i.test(enc); k++) { try { enc = decodeURIComponent(enc); } catch (e) { break; } }
   enc = enc.replace(/ /g, "+").replace(/-/g, "+").replace(/_/g, "/").replace(/[^A-Za-z0-9+/]/g, "");
   if (enc.length % 4 === 1) enc = enc.slice(0, -1);
@@ -66,7 +71,7 @@ const today=new Date(); const T=ds(today);
 const esc=s=>s.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
 
 // the shortcut sends #d=<log> when health-log.txt exists, or #nofile when it doesn't
-const NO_FILE = location.hash === "#nofile";
+const NO_FILE = HASH === "#nofile";
 let text = RAW;
 const NO_DATA = !NO_FILE && !/\d{4}-\d{2}-\d{2}/.test(text);
 const EMPTY = NO_FILE || NO_DATA;
@@ -199,6 +204,18 @@ LOG_GROUPS.map(([g,items])=>`<h3 class="subsection-title">${g}</h3>`+items.map(i
 `</div><div class="sheet-foot"><button type="button" class="sheet-button sheet-button--secondary" data-act="cancel">cancel</button><a class="sheet-button sheet-button--primary" data-act="ok" href="#" aria-disabled="true">ok</a></div></div></div>`;
 
 document.getElementById("app").innerHTML=h;
+
+// quick sparkly "saved" toast after logging. it fades in and out in about a second, sits at the bottom,
+// and can't be tapped, so it never covers the close button or blocks anything on the page.
+if(SAVED>0){
+  const toast=document.createElement("div");
+  toast.className="save-toast"; toast.setAttribute("role","status");
+  document.body.appendChild(toast);
+  requestAnimationFrame(()=>{toast.textContent=`🎉 ${SAVED} ${SAVED===1?"entry":"entries"} saved`;});
+  toast.addEventListener("animationend",e=>{if(e.animationName==="save-toast-fade") toast.remove();});
+  // drop saved=... from the link so a refresh doesn't show the toast again (this doesn't reload the page)
+  history.replaceState(null,"",location.pathname+location.search+HASH);
+}
 
 // show the offline notice whenever the phone has no connection
 const offlineNote=document.getElementById("offline");
